@@ -158,7 +158,7 @@ output_integr = solve_ivp(circ, [0, 5*circ.tau], circ.Vs_0, t_eval=t_explicite)
 graphe.plot(output_integr.t, output_integr.y.T, label="With scipy", ls=':', c='black')
 
 output_integr_RK23 = solve_ivp(circ, [0, 5*circ.tau], circ.Vs_0, t_eval=t_explicite)
-graphe.plot(output_integr_RK23.t, output_integr_RK23.y.T, labe="RK23", ls=':', c='red')
+graphe.plot(output_integr_RK23.t, output_integr_RK23.y.T, label="RK23", ls=':', c='red')
 
 output_integr_RK45 = solve_ivp(circ, [0, 5*circ.tau], circ.Vs_0, t_eval=t_explicite)
 graphe.plot(output_integr_RK45.t, output_integr_RK45.y.T, label="RK45", ls=':', c='green')
