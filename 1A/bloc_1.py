@@ -59,7 +59,7 @@ class Euler:
         Parameters
         ----------
         F : function
-            The function verified by the variable: y'=F(t,y)
+            The function representing the differential equation: y'=F(t,y)
         """
         self.F = F
 
