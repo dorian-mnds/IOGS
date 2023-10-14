@@ -14,6 +14,7 @@ import numpy as np
 # %% Constants
 PI = np.pi
 
+
 # %% Constant signal
 class GenerateConstant:
     """

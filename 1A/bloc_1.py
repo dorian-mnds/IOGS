@@ -103,7 +103,7 @@ class Euler:
 
 
 # %% Régime forcé
-ve = signaux.GenerateSinus(amplitude=5, frequency=10)
+#ve = signaux.GenerateSinus(amplitude=5, frequency=10)
 # ve = signaux.GenerateConstant(value=0)
 # ve = signaux.GenerateSquare(amplitude=10, frequency=3)
 

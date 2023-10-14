@@ -9,27 +9,28 @@ Created on Tue Sep 26 2023
 @author: Dorian Mendes
 """
 # %% Libraries
-import numpy as np
 import matplotlib.pyplot as plt
 
-# %% Graphes
 
+# %% Graphes
 class Lin_XY:
     def __init__(self):
-        self.fig , self.ax = plt.subplots(1,1)
+        self.fig, self.ax = plt.subplots(1, 1)
 
         self.ax.spines['left'].set_position('zero')
         self.ax.spines['bottom'].set_position('zero')
-        
-        self.ax.spines[['right','top']].set_color('none')
-        
+
+        self.ax.spines[['right', 'top']].set_color('none')
+
         self.ax.xaxis.set_ticks_position('bottom')
         self.ax.yaxis.set_ticks_position('left')
-        
-        self.xlabel = '' ; self.ylabel = ''
-        self.xunit = '' ; self.yunit = ''
+
+        self.xlabel = ''
+        self.ylabel = ''
+        self.xunit = ''
+        self.yunit = ''
         self.title = ''
-        
+ 
     def update(self):
         if self.xunit == '':
             self.ax.set_xlabel(r"{}".format(self.xlabel) , loc='right')
