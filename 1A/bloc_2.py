@@ -19,7 +19,7 @@ import graphe
 PIXEL = 4.65  # µm - Taille d'un pixel
 WAVELENGH = 1.3e-6  # m
 PI = np.pi
-DPI = 200
+DPI = None
 
 
 # %% Pour afficher avec la notation scientifique
@@ -99,16 +99,17 @@ for i in range(len(z)):
     ax[1, 0].axvline(xb, c='red', ls=':')
     ax[1, 0].axhline(yb, c='red', ls=':')
     ax[1, 0].scatter(xb, yb, c='red')
+    ax[1, 0].contour(image, [np.max(image)/np.exp(1)], colors=['k'], linestyles='dotted')
 
     # On affiche le profil selon x
-    ax[1, 1].set_title(r"Coupe selon $y=y_{barycentre}$")
+    ax[1, 1].set_title(r"Coupe selon $y$")
     from_img, = ax[1, 1].plot(image[:, int(np.floor(xb))], XX, c='r')
     ax[1, 1].axhline(yb, c='red', ls=':')
     ax[1, 1].invert_yaxis()
     fitted, = ax[1, 1].plot(gaussienne(XX, A_y, B_y, y0, w_y), XX, c='green', lw=1, ls='--')
 
     # On affiche le profil selon y
-    ax[0, 0].set_title(r"Coupe selon $x=x_{barycentre}$")
+    ax[0, 0].set_title(r"Coupe selon $x$")
     ax[0, 0].plot(XX, image[int(np.floor(yb)), :], c='r')
     ax[0, 0].axvline(xb, c='red', ls=':')
     ax[0, 0].plot(XX, gaussienne(XX, A_x, B_x, x0, w_x), c='green', lw=1, ls='--')
@@ -132,8 +133,9 @@ for i in range(len(z)):
     width_x.append(w_x)
     width_y.append(w_y)
 
-    plt.savefig("bloc_2_export/analyse_image_"+str(i)+'.png', dpi=DPI)
-    plt.show()
+    if DPI is not None:
+        plt.savefig("bloc_2_export/analyse_image_"+str(i)+'.png', dpi=DPI)
+    plt.show(block=True)
 
 width_x = np.array(width_x)*PIXEL
 width_y = np.array(width_y)*PIXEL
@@ -162,8 +164,9 @@ ax_M2_x.plot(z_plot, -rayon(z_plot, w0_x, M_x), color='r')
 ax_M2_x.fill_between(z_plot, -rayon(z_plot, w0_x, M_x), rayon(z_plot, w0_x, M_x), color='r', alpha=.5)
 ax_M2_x.scatter(z, width_x, color='k')
 ax_M2_x.scatter(z, -width_x, color='k')
-plt.savefig("bloc_2_export/waist_x.png", dpi=DPI)
-plt.show()
+if DPI is not None:
+    plt.savefig("bloc_2_export/waist_x.png", dpi=DPI)
+plt.show(block=True)
 
 ax_M2_y = graphe.new_plot()
 ax_M_y = graphe.lin_XY(
@@ -179,5 +182,6 @@ ax_M2_y.plot(z_plot, -rayon(z_plot, w0_y, M_y), color='r')
 ax_M2_y.fill_between(z_plot, -rayon(z_plot, w0_y, M_y), rayon(z_plot, w0_y, M_y), color='r', alpha=.5)
 ax_M2_y.scatter(z, width_x, color='k')
 ax_M2_y.scatter(z, -width_x, color='k')
-plt.savefig("bloc_2_export/waist_y.png", dpi=DPI)
-plt.show()
+if DPI is not None:
+    plt.savefig("bloc_2_export/waist_y.png", dpi=DPI)
+plt.show(block=True)
