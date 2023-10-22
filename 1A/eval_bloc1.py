@@ -14,7 +14,7 @@ import numpy as np
 from scipy.integrate import solve_ivp
 
 import signaux
-from graphe import Lin_XY
+from graphe import *
 
 
 # %% Méthode d'Euler explicite
@@ -113,12 +113,13 @@ circuit = Circuit_RC(1e3, 1e-6, ve, Vs_0=0)
 explicite_method = Euler(circuit)
 
 # Création de la figure
-graphe = Lin_XY()
-graphe.set_title("Circuit RC - Méthode d'Euler")
-graphe.set_xlabel('$t$')
-graphe.set_xunit('s')
-graphe.set_ylabel('$V_s$')
-graphe.set_yunit('V')
+graphe = new_plot()
+graphe = lin_XY(graphe,
+                title="Circuit RC - Méthode d'Euler",
+                x_label='$t$',
+                x_unit='s',
+                y_label='$V_s$',
+                y_unit='V')
 
 # On trace la résolution pour des subdivisions de tailles différentes
 for N in [10, 50, 100]:
@@ -130,17 +131,18 @@ graphe.plot(t_explicite, ve(t_explicite), label=r'$V_{IN}$', lw=.7, c='blue', ls
 
 graphe.legend(loc=5)
 graphe.grid()
-graphe.show()
+plt.show()
 
 # %% Deuxième circuit RC avec solve_ivp
 
 # Création de la figure
-graphe_2 = Lin_XY()
-graphe_2.set_title("Circuit RC - avec solve_ivp")
-graphe_2.set_xlabel('$t$')
-graphe_2.set_xunit('s')
-graphe_2.set_ylabel('$V_s$')
-graphe_2.set_yunit('V')
+graphe_2 = new_plot()
+graphe_2 = lin_XY(graphe_2,
+                  title="Circuit RC - avec solve_ivp",
+                  x_label='$t$',
+                  x_unit='s',
+                  y_label='$V_s$',
+                  y_unit='V')
 
 # On trace pour 3 fréquences différentes
 for freq, color in [(10, 'blue'), (50, 'orange'), (100, 'green')]:
@@ -154,4 +156,4 @@ for freq, color in [(10, 'blue'), (50, 'orange'), (100, 'green')]:
 
 graphe_2.legend(loc=8)
 graphe_2.grid()
-graphe_2.show()
+plt.show()

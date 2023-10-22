@@ -16,7 +16,7 @@ from time import process_time
 from scipy.integrate import solve_ivp
 
 import signaux
-from graphe import Lin_XY
+from graphe import *
 
 
 # %% Timer
@@ -103,7 +103,7 @@ class Euler:
 
 
 # %% Régime forcé
-#ve = signaux.GenerateSinus(amplitude=5, frequency=10)
+ve = signaux.GenerateSinus(amplitude=5, frequency=10)
 # ve = signaux.GenerateConstant(value=0)
 # ve = signaux.GenerateSquare(amplitude=10, frequency=3)
 
@@ -140,12 +140,13 @@ circ = Circuit_RC(100e3, 1e-6, ve, Vs_0=5)
 explicite = Euler(circ)
 
 # %%
-graphe = Lin_XY()
-graphe.set_title("Circuit RC")
-graphe.set_xlabel('$t$')
-graphe.set_xunit('s')
-graphe.set_ylabel('$V_s$')
-graphe.set_yunit('V')
+graphe = new_plot()
+graphe = lin_XY(graphe,
+                title="Circuit RC",
+                x_label='$t$',
+                x_unit='s',
+                y_label='$V_s$',
+                y_unit='V')
 
 for N in [10, 50, 500]:
     print(" ******************************* ")
@@ -167,7 +168,7 @@ graphe.plot(t_explicite, ve(t_explicite), label='IN', lw=.7, c='blue', ls='-.')
 
 graphe.legend()
 graphe.grid()
-graphe.show()
+plt.show()
 
 
 # %% Ordre 2 - Circuit RLC série
@@ -194,8 +195,9 @@ rlc = Circuit_RLC(
     [1, 0])      # Vs(0) et u(0)
 eq = Euler(rlc)
 
-graphe_2 = Lin_XY()
-graphe_2.set_title("Circuit RLC")
+graphe_2 = new_plot()
+graphe_2 = lin_XY(graphe_2,
+                  title="Circuit RLC")
 
 print(" ******************************* ")
 t_rlc, y_rlc = eq.solve([0, .4], np.array([3, 0]))
@@ -207,4 +209,4 @@ graphe_2.plot(output_integr_RK45.t, output_integr_RK45.y[0], label="RK45", ls=':
 graphe_2.plot(t_rlc, ve(t_rlc), label='IN', lw=.7, c='blue', ls='-.')
 
 graphe_2.legend()
-graphe_2.show()
+plt.show()
