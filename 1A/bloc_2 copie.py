@@ -12,14 +12,14 @@ Created on Tue Oct 17
 # %% Librairies
 import matplotlib.pyplot as plt
 import numpy as np
-from scipy.optimize import curve_fit
+from scipy.optimize import curve_fit, minimize
 import graphe
 
 # %% Constantes
 PIXEL = 4.65  # µm - Taille d'un pixel
 WAVELENGH = 1.3e-6  # m
 PI = np.pi
-DPI = None  # Pour l'enregistrement des images
+DPI = None  # For the save of images
 
 
 # %% Extraction des images
@@ -39,7 +39,6 @@ DPI = None  # Pour l'enregistrement des images
 data = np.loadtxt("bloc_2_data/data_bloc_2.csv", delimiter=",", dtype=str)
 z = data[:, 0].astype('int')  # en µm
 local_path = np.array(["bloc_2_data/"+x for x in data[:, 1]])
-
 # Array of the images in the same order of z
 img_array = np.array(list(map(plt.imread, local_path)))
 dim = img_array[0].shape[0]  # The number of pixel. (here: 500)
@@ -93,7 +92,7 @@ def gaussian(x, A, B, x0, w):
     x0 : float
         Center of the gaussian
     w : float
-        The half-width of the gaussian
+        The half width of the gaussian
 
     Returns
     -------
@@ -130,35 +129,83 @@ def radius(z, w0, M):
     return w0*np.sqrt(1+(z*1e-3*M**2*WAVELENGH/(PI*w0**2))**2)*1e6
 
 
-# %% Traitement des images
-width_x = []
-width_y = []
+# %%
+def get_slice(theta, x0, y0):
+    if theta == np.deg2rad(90) or theta == np.deg2rad(-90):
+        return [(x0, i) for i in range(dim)]
+    XY = [(x0, y0)]
+    k = 1
+    while 0 <= int(y0+k*np.tan(theta)) < dim and 0 <= x0+k < dim:
+        XY.append((int(x0+k), int(y0+k*np.tan(theta))))
+        k += 1
+    k = -1
+    while 0 <= int(y0+k*np.tan(theta)) < dim and 0 <= x0+k < dim:
+        XY.append((int(x0+k), int(y0+k*np.tan(theta))))
+        k -= 1
 
-for i in range(len(z)):
+    return sorted(XY)
+
+
+def select_array(theta, i):
     image = img_array[i]
     xb = barycenter_array[0, i]
     yb = barycenter_array[1, i]
-    wx = np.std(image[int(xb), :])  # Approximation de la demi-largeur selon x
-    wy = np.std(image[:, int(yb)])  # Approximation de la ldemi-argeur selon y
+    XY = get_slice(theta, int(xb), int(yb))
+    lst = []
+    for x, y in XY:
+        lst.append(image[y][x])
+    return lst
+
+
+def find_theta(theta, i):
+    image = img_array[i]
+    xb = barycenter_array[0, i]
+    yb = barycenter_array[1, i]
+    slce = select_array(theta, i)
+    w = np.std(slce)*2
+    return -w
+
+
+# %% Traitement des images
+width_u = []
+width_v = []
+
+for i in range(len(z)):
+    image = img_array[i]
+    arg_theta = minimize(find_theta, 0, i)
+    theta = arg_theta.x[0]
+    print(f"theta={theta}")
+    slice_u = select_array(theta, i)
+    slice_v = select_array(theta+PI/2, i)
+
+    xb = barycenter_array[0, i]
+    yb = barycenter_array[1, i]
+
+    dim_u = len(slice_u)
+    dim_v = len(slice_v)
+
+    wu = np.std(slice_u)
+    wv = np.std(slice_v)
+    print(f"wu={wu} et wv={wv}")
 
     # On fait la méthode des moindre carrés
-    args_x, _ = curve_fit(
+    args_u, _ = curve_fit(
         gaussian,  # The fitting function
-        pixel_range,  # [0, 1, 2, ..., dim-1]
-        image[int(yb), :],
-        p0=[0, np.max(image)-np.min(image), xb, wx]  # Offset, amplitude, valeur moyenne, largeur
+        list(range(dim_u)),  # [0, 1, 2, ..., 255]
+        slice_u,
+        p0=[0, np.max(image)-np.min(image), xb, wu]
     )
-    args_y, _ = curve_fit(
+    args_v, _ = curve_fit(
         gaussian,
-        pixel_range,
-        image[:, int(xb)],
-        p0=[0, np.max(image)-np.min(image), yb, wy]
+        list(range(dim_v)),
+        slice_v,
+        p0=[0, np.max(image)-np.min(image), yb, wv]
     )
-    A_x, B_x, x0, w_x = args_x
-    A_y, B_y, y0, w_y = args_y
+    A_u, B_u, xu, w_u = args_u
+    A_v, B_v, yv, w_v = args_v
 
-    width_x.append(w_x)
-    width_y.append(w_y)
+    width_u.append(w_u)
+    width_v.append(w_v)
 
     # On affiche tout - Paramètres de la grille d'affichage
     mosaique_style = {
@@ -175,33 +222,28 @@ for i in range(len(z)):
     ax[1, 0].axvline(xb, c='red', ls=':')
     ax[1, 0].axhline(yb, c='red', ls=':')
     ax[1, 0].scatter(xb, yb, c='red')
-
     # Level line at the width of the gaussian function.
     ax[1, 0].contour(image, [(np.max(image)-np.min(image)) /
                      np.exp(1)], colors=['k'], linestyles='dotted')
 
     # On affiche le profil selon x
     ax[1, 1].set_title(r"Coupe selon $y$")
-    from_img_array, = ax[1, 1].plot(
-        image[:, int(np.floor(xb))], pixel_range, c='r')  # On donne un nom pour sauver le style de la ligne et l'ajouter à la légende
-    ax[1, 1].axhline(yb, c='red', ls=':')
+    from_img_array, = ax[1, 1].plot(slice_v, list(range(dim_v)), c='r')
     ax[1, 1].invert_yaxis()
-    fitted, = ax[1, 1].plot(gaussian(pixel_range, *args_y),
-                            pixel_range, c='green', lw=1, ls='--')  # On donne un nom pour sauver le style de la ligne et l'ajouter à la légende
+    fitted, = ax[1, 1].plot(gaussian(pixel_range, *args_v),
+                            pixel_range, c='green', lw=1, ls='--')
 
     # On affiche le profil selon y
     ax[0, 0].set_title(r"Coupe selon $x$")
-    ax[0, 0].plot(pixel_range, image[int(np.floor(yb)), :], c='r')
-    ax[0, 0].axvline(xb, c='red', ls=':')
+    ax[0, 0].plot(list(range(dim_u)), slice_u, c='r')
     ax[0, 0].plot(pixel_range, gaussian(
-        pixel_range, *args_x), c='green', lw=1, ls='--')
+        pixel_range, *args_u), c='green', lw=1, ls='--')
 
     # On affiche quelques infos
     ax[0, 1].axis('off')
     ax[0, 1].set_title(r"$z={}$ ({}/{})".format(z[i], i+1, len(z)))
-    ax[0, 1].text(0, .6, f"Intensité minimale: {np.min(image)} ; Intensité maximale: {np.max(image)}")
-    ax[0, 1].text(0, .5, f"Taille du faisceau en x:{2*w_x*PIXEL:.2f} µm")
-    ax[0, 1].text(0, .4, f"Taille du faisceau en y:{2*w_y*PIXEL:.2f} µm")
+    ax[0, 1].text(0, .5, f"Taille du faisceau en x:{2*w_u*PIXEL:.2f} µm")
+    ax[0, 1].text(0, .4, f"Taille du faisceau en y:{2*w_v*PIXEL:.2f} µm")
     ax[0, 1].legend([from_img_array, fitted], [
                     "Donnée de l'image", "Modèle"], loc="upper center")
 
@@ -222,14 +264,14 @@ for i in range(len(z)):
         plt.savefig("bloc_2_export/analyse_image_"+str(i)+'.png', dpi=DPI)
     plt.show(block=True)
 
-width_x = np.array(width_x)*PIXEL
-width_y = np.array(width_y)*PIXEL
+width_u = np.array(width_u)*PIXEL
+width_v = np.array(width_v)*PIXEL
 
 # %% À la recherche de M^2
 # On fit nos données avec le modèle.
-args_x, _ = curve_fit(radius, z, width_x, p0=[width_x[0], 1])
+args_x, _ = curve_fit(radius, z, width_u, p0=[width_u[0], 1])
 w0_x, M_x = args_x
-args_y, _ = curve_fit(radius, z, width_y, p0=[width_y[0], 1])
+args_y, _ = curve_fit(radius, z, width_v, p0=[width_v[0], 1])
 w0_y, M_y = args_y
 
 # On crée une rampe pour l'affichage
@@ -239,7 +281,7 @@ z_plot = np.linspace(z_min, z_max)
 
 # On crée un nouveau graphe
 ax_M2_x = graphe.new_plot()
-ax_M2_x = graphe.lin_XY(
+ax_M_x = graphe.lin_XY(
     ax_M2_x,
     x_label='$z$',
     x_unit='$\mu m$',
@@ -253,8 +295,8 @@ ax_M2_x.plot(z_plot, radius(z_plot, w0_x, M_x), color='r')
 ax_M2_x.plot(z_plot, -radius(z_plot, w0_x, M_x), color='r')
 ax_M2_x.fill_between(z_plot, -radius(z_plot, w0_x, M_x),
                      radius(z_plot, w0_x, M_x), color='r', alpha=.5)
-ax_M2_x.scatter(z, width_x, color='k')
-ax_M2_x.scatter(z, -width_x, color='k')
+ax_M2_x.scatter(z, width_u, color='k')
+ax_M2_x.scatter(z, -width_u, color='k')
 
 # On enregistre les graphes
 if DPI is not None:
@@ -262,7 +304,7 @@ if DPI is not None:
 plt.show(block=True)
 
 ax_M2_y = graphe.new_plot()
-ax_M2_y = graphe.lin_XY(
+ax_M_y = graphe.lin_XY(
     ax_M2_y,
     x_label='$z$',
     x_unit='$\mu m$',
@@ -274,27 +316,8 @@ ax_M2_y.plot(z_plot, radius(z_plot, w0_y, M_y), color='r')
 ax_M2_y.plot(z_plot, -radius(z_plot, w0_y, M_y), color='r')
 ax_M2_y.fill_between(z_plot, -radius(z_plot, w0_y, M_y),
                      radius(z_plot, w0_y, M_y), color='r', alpha=.5)
-ax_M2_y.scatter(z, width_x, color='k')
-ax_M2_y.scatter(z, -width_x, color='k')
-
+ax_M2_y.scatter(z, width_v, color='k')
+ax_M2_y.scatter(z, -width_v, color='k')
 if DPI is not None:
     plt.savefig("bloc_2_export/waist_y.png", dpi=DPI)
 plt.show(block=True)
-
-# %% Analyse critique des résultats
-print("\n\t\t ===== Analyse critique des résultats =====")
-print(
-    '\t--- Q1 ---',
-    "Si le fond n'est pas globalement à 0 alors un offset sera introduit à la fonction gaussienne.",
-    "Cependant, la fit intègre la différence MAX-MIN ce qui permet de gérer ces cas là.",
-    sep='\n', end='\n\n'
-)
-print(
-    '\t--- Q2 ---',
-    "Si l'ellipse n'est axée selon X et Y alors le programme actuel ne calculera pas les bonnes largeur et donc pas le bon facteur M2 (voir schéma).",
-    "Pour améliorer la méthode, il faudrait prendre en compte l'angle theta entre les axes de l'ellipse et les axes de l'image et appliqué le programme dans ce nouveau repère.",
-    sep='\n', end='\n\n'
-)
-plt.imshow(plt.imread('bloc_2_data/Lissajous.png'))
-plt.axis('off')
-plt.show()

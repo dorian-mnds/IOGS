@@ -15,6 +15,21 @@ import matplotlib.pyplot as plt
 
 
 def new_plot(fig_output=False):
+    """
+    Generate a new plot area.
+
+    Parameters
+    ----------
+    fig_output : bool, optional
+        Define if the function has to return the variable of the Figure instance.
+        The default is False.
+
+    Returns
+    -------
+    matplotlib.Axis or (matplotlib.Figure, matplotlib.Axis)
+        The new plot area.
+
+    """
     fig, ax = plt.subplots(1, 1)
     if fig_output:
         return fig, ax
@@ -24,6 +39,30 @@ def new_plot(fig_output=False):
 
 # %% New mosaique
 def new_mosaique(nb_rows, nb_columns, style=None, fig_output=False):
+    """
+    Generate a new grid of plots.
+
+    Parameters
+    ----------
+    nb_rows : int
+        The number of rows of the grid.
+    nb_columns : int
+        The number of columns of the grid.
+    style : dict, optional
+        The dictionnary matching the style of each cell of the grid (XY plot, X-Ylog plot, polar plot, etc.).
+        The keys of this dictionary are the couple of the coordinates (i, j)  of the cell.
+        The values are a function of this module.
+        The default is None.
+    fig_output : bool, optional
+        Define if the function has to return the variable of the Figure instance.
+        The default is False.
+
+    Returns
+    -------
+    matplotlib.Axis or (matplotlib.Figure, matplotlib.Axis)
+        The new plot grid.
+
+    """
     # Style sous la forme {(0,0): ..., (1,0):..., etc}
     fig, ax = plt.subplots(nb_rows, nb_columns, tight_layout=True)
     if style is not None:
@@ -38,6 +77,43 @@ def new_mosaique(nb_rows, nb_columns, style=None, fig_output=False):
 
 # %% Axes modifiers
 def lin_XY(ax, title='', x_label='', x_unit='', y_label='', y_unit='', axis_intersect=(0, 0)):
+    """
+    Set the style of a plot to a plot with linear axis.
+
+    Parameters
+    ----------
+    ax : matplotlib.Axis
+        The axis we want to modify.
+    title : str, optional
+        The title of the plot.
+        LaTeX writing is available.
+        The default is ''.
+    x_label : str, optional
+        The label of the X axis.
+        LaTeX writing is available.
+        The default is ''.
+    x_unit : str, optional
+        The unit of the X axis.
+        LaTeX writing is available.
+        The default is ''.
+    y_label : str, optional
+        The label of the Y axis.
+        LaTeX writing is available.
+        The default is ''.
+    y_unit : str, optional
+        The unit of the Y axis.
+        LaTeX writing is available.
+        The default is ''.
+    axis_intersect : tuple, optional
+        The coordinates of the intersection point between X and Y.
+        The default is (0, 0).
+
+    Returns
+    -------
+    ax : matplotlib.Axis
+        The axis modified.
+
+    """
     ax.spines['left'].set_position('zero')
     ax.spines['bottom'].set_position('zero')
     ax.spines[['right', 'top']].set_color('none')
@@ -63,5 +139,19 @@ def lin_XY(ax, title='', x_label='', x_unit='', y_label='', y_unit='', axis_inte
 
 
 def empty(ax):
+    """
+    Set the style of a plot to an empty plot.
+
+    Parameters
+    ----------
+    ax : matplotlib.Axis
+        The axis modified.
+
+    Returns
+    -------
+    ax : TYPE
+        DESCRIPTION.
+
+    """
     ax.axis('off')
     return ax
