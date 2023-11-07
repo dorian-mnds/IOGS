@@ -37,7 +37,7 @@ DPI = None  # Pour l'enregistrement des images
 # dim = img_array[0].shape[0]
 
 data = np.loadtxt("bloc_2_data/data_bloc_2.csv", delimiter=",", dtype=str)
-z = data[:, 0].astype('int')  # en µm
+z = data[:, 0].astype('float')  # en µm
 local_path = np.array(["bloc_2_data/"+x for x in data[:, 1]])
 
 # Array of the images in the same order of z
@@ -129,6 +129,24 @@ def radius(z, w0, M):
     """
     return w0*np.sqrt(1+(z*1e-3*M**2*WAVELENGH/(PI*w0**2))**2)*1e6
 
+# %% Second-moment width
+
+
+def second_moment_width_X(image):
+    xb = barycenter(image)[0]
+    x_matrix = (pixel_range-xb)**2
+    I_tot = np.sum(image)
+    s_x = np.sum(image, axis=0).dot(x_matrix)
+    return 4*np.sqrt(s_x/I_tot)
+
+
+def second_moment_width_Y(image):
+    yb = barycenter(image)[1]
+    y_matrix = (pixel_range-yb)**2
+    I_tot = np.sum(image)
+    s_y = np.sum(image, axis=1).dot(y_matrix)
+    return 4*np.sqrt(s_y/I_tot)
+
 
 # %% Traitement des images
 width_x = []
@@ -198,7 +216,7 @@ for i in range(len(z)):
 
     # On affiche quelques infos
     ax[0, 1].axis('off')
-    ax[0, 1].set_title(r"$z={}$ ({}/{})".format(z[i], i+1, len(z)))
+    ax[0, 1].set_title(r"$z={}$µm ({}/{})".format(z[i], i+1, len(z)))
     ax[0, 1].text(0, .6, f"Intensité minimale: {np.min(image)} ; Intensité maximale: {np.max(image)}")
     ax[0, 1].text(0, .5, f"Taille du faisceau en x:{2*w_x*PIXEL:.2f} µm")
     ax[0, 1].text(0, .4, f"Taille du faisceau en y:{2*w_y*PIXEL:.2f} µm")
@@ -225,12 +243,21 @@ for i in range(len(z)):
 width_x = np.array(width_x)*PIXEL
 width_y = np.array(width_y)*PIXEL
 
+width_x_with_D4sigma = np.array(list(map(second_moment_width_X, img_array)))*PIXEL
+width_y_with_D4sigma = np.array(list(map(second_moment_width_Y, img_array)))*PIXEL
+
 # %% À la recherche de M^2
 # On fit nos données avec le modèle.
 args_x, _ = curve_fit(radius, z, width_x, p0=[width_x[0], 1])
 w0_x, M_x = args_x
 args_y, _ = curve_fit(radius, z, width_y, p0=[width_y[0], 1])
 w0_y, M_y = args_y
+
+# Avec D4sigma
+args_x_D4, _ = curve_fit(radius, z, width_x_with_D4sigma, p0=[width_x[0], 1])
+w0_x_D4, M_x_D4 = args_x_D4
+args_y_D4, _ = curve_fit(radius, z, width_y_with_D4sigma, p0=[width_y[0], 1])
+w0_y_D4, M_y_D4 = args_y_D4
 
 # On crée une rampe pour l'affichage
 z_min = np.min(z)
@@ -242,7 +269,7 @@ ax_M2_x = graphe.new_plot()
 ax_M2_x = graphe.lin_XY(
     ax_M2_x,
     x_label='$z$',
-    x_unit='$\mu m$',
+    x_unit='$mm$',
     y_label='$\omega_x(z)$',
     y_unit='$\mu m$',
     title=r"$\omega_{0,x}=%.2f \mu m$ et $M_x^2=%.2f$" % (w0_x*1e6, M_x**2)
@@ -253,8 +280,14 @@ ax_M2_x.plot(z_plot, radius(z_plot, w0_x, M_x), color='r')
 ax_M2_x.plot(z_plot, -radius(z_plot, w0_x, M_x), color='r')
 ax_M2_x.fill_between(z_plot, -radius(z_plot, w0_x, M_x),
                      radius(z_plot, w0_x, M_x), color='r', alpha=.5)
-ax_M2_x.scatter(z, width_x, color='k')
+ax_M2_x.scatter(z, width_x, color='k', label='Fit gaussien')
 ax_M2_x.scatter(z, -width_x, color='k')
+
+ax_M2_x.plot(z_plot, radius(z_plot, w0_x_D4, M_x_D4), color='green')
+ax_M2_x.plot(z_plot, -radius(z_plot, w0_x_D4, M_x_D4), color='green')
+ax_M2_x.scatter(z, width_x_with_D4sigma, color='green', marker='x', label=r'D4$\sigma$')
+ax_M2_x.scatter(z, -width_x_with_D4sigma, color='green', marker='x')
+ax_M2_x.legend()
 
 # On enregistre les graphes
 if DPI is not None:
@@ -265,7 +298,7 @@ ax_M2_y = graphe.new_plot()
 ax_M2_y = graphe.lin_XY(
     ax_M2_y,
     x_label='$z$',
-    x_unit='$\mu m$',
+    x_unit='$mm$',
     y_label='$\omega_y(z)$',
     y_unit='$\mu m$',
     title=r"$\omega_{0,y}=%.2f \mu m$ et $M_y^2=%.2f$" % (w0_y*1e6, M_y**2)
@@ -274,27 +307,33 @@ ax_M2_y.plot(z_plot, radius(z_plot, w0_y, M_y), color='r')
 ax_M2_y.plot(z_plot, -radius(z_plot, w0_y, M_y), color='r')
 ax_M2_y.fill_between(z_plot, -radius(z_plot, w0_y, M_y),
                      radius(z_plot, w0_y, M_y), color='r', alpha=.5)
-ax_M2_y.scatter(z, width_x, color='k')
+ax_M2_y.scatter(z, width_x, color='k', label='Fit gaussien')
 ax_M2_y.scatter(z, -width_x, color='k')
+
+ax_M2_y.plot(z_plot, radius(z_plot, w0_y_D4, M_y_D4), color='green')
+ax_M2_y.plot(z_plot, -radius(z_plot, w0_y_D4, M_y_D4), color='green')
+ax_M2_y.scatter(z, width_y_with_D4sigma, color='green', marker='x', label=r'D4$\sigma$')
+ax_M2_y.scatter(z, -width_y_with_D4sigma, color='green', marker='x')
+ax_M2_y.legend()
 
 if DPI is not None:
     plt.savefig("bloc_2_export/waist_y.png", dpi=DPI)
 plt.show(block=True)
 
 # %% Analyse critique des résultats
-print("\n\t\t ===== Analyse critique des résultats =====")
-print(
-    '\t--- Q1 ---',
-    "Si le fond n'est pas globalement à 0 alors un offset sera introduit à la fonction gaussienne.",
-    "Cependant, la fit intègre la différence MAX-MIN ce qui permet de gérer ces cas là.",
-    sep='\n', end='\n\n'
-)
-print(
-    '\t--- Q2 ---',
-    "Si l'ellipse n'est axée selon X et Y alors le programme actuel ne calculera pas les bonnes largeur et donc pas le bon facteur M2 (voir schéma).",
-    "Pour améliorer la méthode, il faudrait prendre en compte l'angle theta entre les axes de l'ellipse et les axes de l'image et appliqué le programme dans ce nouveau repère.",
-    sep='\n', end='\n\n'
-)
-plt.imshow(plt.imread('bloc_2_data/Lissajous.png'))
-plt.axis('off')
-plt.show()
+# print("\n\t\t ===== Analyse critique des résultats =====")
+# print(
+#     '--- Q1 ---',
+#     "Si le fond n'est pas globalement à 0 alors un offset sera introduit à la fonction gaussienne.",
+#     "Cependant, la fit intègre la différence MAX-MIN ce qui permet de gérer ces cas là.",
+#     sep='\n', end='\n\n'
+# )
+# print(
+#     '--- Q2 ---',
+#     "Si l'ellipse n'est axée selon X et Y alors le programme actuel ne calculera pas les bonnes largeur et donc pas le bon facteur M2 (voir schéma).",
+#     "Pour améliorer la méthode, il faudrait prendre en compte l'angle theta entre les axes de l'ellipse et les axes de l'image et appliqué le programme dans ce nouveau repère.",
+#     sep='\n', end='\n\n'
+# )
+# plt.imshow(plt.imread('bloc_2_data/Lissajous.png'))
+# plt.axis('off')
+# plt.show()

@@ -155,3 +155,29 @@ def empty(ax):
     """
     ax.axis('off')
     return ax
+
+
+def SemiLogX(ax, title='', x_label='', x_unit='', y_label='', y_unit='', axis_intersect=(0, 0)):
+    ax.set_xscale('log')
+    ax.spines['left'].set_position('zero')
+    ax.spines['bottom'].set_position('zero')
+    ax.spines[['right', 'top']].set_color('none')
+
+    ax.xaxis.set_ticks_position('bottom')
+    ax.yaxis.set_ticks_position('left')
+
+    if x_unit == '':
+        ax.set_xlabel(r"{}".format(x_label), loc='right')
+    else:
+        ax.set_xlabel(r"{} ({})".format(x_label, x_unit), loc='right')
+    if y_unit == '':
+        ax.set_ylabel(r"{}".format(y_label), loc='top')
+    else:
+        ax.set_ylabel(r"{} ({})".format(y_label, y_unit), loc='top')
+
+    x0, y0 = axis_intersect
+    ax.spines['left'].set_position(['data', x0])
+    ax.spines['bottom'].set_position(['data', y0])
+
+    ax.set_title(title)
+    return ax
