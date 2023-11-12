@@ -157,10 +157,34 @@ def empty(ax):
     return ax
 
 
-def SemiLogX(ax, title='', x_label='', x_unit='', y_label='', y_unit='', axis_intersect=(0, 0)):
+def log_X(ax, title='', x_label='', x_unit='', y_label='', y_unit='', x_intersect=None, y_intersect=0):
     ax.set_xscale('log')
-    ax.spines['left'].set_position('zero')
     ax.spines['bottom'].set_position('zero')
+    ax.spines[['right', 'top']].set_color('none')
+
+    ax.xaxis.set_ticks_position('bottom')
+    ax.yaxis.set_ticks_position('left')
+
+    if x_unit == '':
+        ax.set_xlabel(r"{} [log]".format(x_label), loc='right')
+    else:
+        ax.set_xlabel(r"{} ({}) [log]".format(x_label, x_unit), loc='right')
+    if y_unit == '':
+        ax.set_ylabel(r"{}".format(y_label), loc='top')
+    else:
+        ax.set_ylabel(r"{} ({})".format(y_label, y_unit), loc='top')
+
+    if x_intersect is not None:
+        ax.spines['left'].set_position(['data', x_intersect])
+    ax.spines['bottom'].set_position(['data', y_intersect])
+
+    ax.set_title(title)
+    return ax
+
+
+def log_Y(ax, title='', x_label='', x_unit='', y_label='', y_unit='', x_intersect=0, y_intersect=None):
+    ax.set_yscale('log')
+    ax.spines['left'].set_position('zero')
     ax.spines[['right', 'top']].set_color('none')
 
     ax.xaxis.set_ticks_position('bottom')
@@ -171,13 +195,50 @@ def SemiLogX(ax, title='', x_label='', x_unit='', y_label='', y_unit='', axis_in
     else:
         ax.set_xlabel(r"{} ({})".format(x_label, x_unit), loc='right')
     if y_unit == '':
-        ax.set_ylabel(r"{}".format(y_label), loc='top')
+        ax.set_ylabel(r"{} [log]".format(y_label), loc='top')
     else:
-        ax.set_ylabel(r"{} ({})".format(y_label, y_unit), loc='top')
+        ax.set_ylabel(r"{} ({}) [log]".format(y_label, y_unit), loc='top')
 
-    x0, y0 = axis_intersect
-    ax.spines['left'].set_position(['data', x0])
-    ax.spines['bottom'].set_position(['data', y0])
+    if y_intersect is not None:
+        ax.spines['bottom'].set_position(['data', y_intersect])
+    ax.spines['left'].set_position(['data', x_intersect])
 
     ax.set_title(title)
     return ax
+
+
+def log_XY(ax, title='', x_label='', x_unit='', y_label='', y_unit='', x_intersect=None, y_intersect=None):
+    ax.set_xscale('log')
+    ax.set_yscale('log')
+    ax.spines[['right', 'top']].set_color('none')
+
+    ax.xaxis.set_ticks_position('bottom')
+    ax.yaxis.set_ticks_position('left')
+
+    if x_unit == '':
+        ax.set_xlabel(r"{} [log]".format(x_label), loc='right')
+    else:
+        ax.set_xlabel(r"{} ({}) [log]".format(x_label, x_unit), loc='right')
+    if y_unit == '':
+        ax.set_ylabel(r"{} [log]".format(y_label), loc='top')
+    else:
+        ax.set_ylabel(r"{} ({}) [log]".format(y_label, y_unit), loc='top')
+
+    if x_intersect is not None:
+        ax.spines['left'].set_position(['data', x_intersect])
+    if y_intersect is not None:
+        ax.spines['bottom'].set_position(['data', y_intersect])
+
+    ax.set_title(title)
+    return ax
+
+
+if __name__ == '__main__':
+    import numpy as np
+    ax = new_plot()
+    ax = log_XY(ax, x_label='$t$')
+    t = np.logspace(-3, 3)
+    y = 2*np.sqrt(t)/(1+t)
+    ax.plot(t, y)
+    ax.axhline(1, color='k', ls=':')
+    ax.grid()
