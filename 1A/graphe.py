@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-Outils Numériques pour le Traitement de l'Information
-Bibliothèques de graphiques
+Outils Numériques pour l'Ingénieur.e en Physique
+Bibliothèque de graphiques
 
 Created on Tue Sep 26 2023
 
@@ -11,9 +11,8 @@ Created on Tue Sep 26 2023
 # %% Libraries
 import matplotlib.pyplot as plt
 
+
 # %% New plot
-
-
 def new_plot(fig_output=False):
     """
     Generate a new plot area.
@@ -231,14 +230,3 @@ def log_XY(ax, title='', x_label='', x_unit='', y_label='', y_unit='', x_interse
 
     ax.set_title(title)
     return ax
-
-
-if __name__ == '__main__':
-    import numpy as np
-    ax = new_plot()
-    ax = log_XY(ax, x_label='$t$')
-    t = np.logspace(-3, 3)
-    y = 2*np.sqrt(t)/(1+t)
-    ax.plot(t, y)
-    ax.axhline(1, color='k', ls=':')
-    ax.grid()

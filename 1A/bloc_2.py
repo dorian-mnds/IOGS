@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-Outils Numériques pour le Traitement de l'Information
+Outils Numériques pour l'Ingénieur.e en Physique
 Bloc 2
 
 Created on Tue Oct 17
