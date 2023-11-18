@@ -66,7 +66,7 @@ class GenerateSinus:
         The frequency of the signal
     """
 
-    def __init__(self, amplitude, frequency):
+    def __init__(self, amplitude, frequency, phase=0):
         """
         Parameters
         ----------
@@ -74,9 +74,12 @@ class GenerateSinus:
             The amplitude of the signal
         frequency : float
             The frequency of the signal
+        phase : float
+            The phase of the signal
         """
         self.amplitude = amplitude
         self.frequency = frequency
+        self.phase = phase
 
     def __call__(self, t):
         """
@@ -92,7 +95,7 @@ class GenerateSinus:
         ndarray or float
             An array representing the signal evaluates for thoses times.
         """
-        return self.amplitude*np.sin(2*PI*self.frequency*t)
+        return self.amplitude*np.sin(2*PI*self.frequency*t-self.phase)
 
 # %% Square signal
 
