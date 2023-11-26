@@ -13,7 +13,7 @@ import matplotlib.pyplot as plt
 
 
 # %% New plot
-def new_plot(fig_output=False):
+def new_plot(fig_output=False, *args, **kwargs):
     """
     Generate a new plot area.
 
@@ -29,7 +29,7 @@ def new_plot(fig_output=False):
         The new plot area.
 
     """
-    fig, ax = plt.subplots(1, 1)
+    fig, ax = plt.subplots(1, 1, *args, **kwargs)
     if fig_output:
         return fig, ax
     else:
@@ -37,7 +37,7 @@ def new_plot(fig_output=False):
 
 
 # %% New mosaique
-def new_mosaique(nb_rows, nb_columns, style=None, fig_output=False):
+def new_mosaique(nb_rows, nb_columns, style=None, fig_output=False, *args, **kwargs):
     """
     Generate a new grid of plots.
 
@@ -63,7 +63,7 @@ def new_mosaique(nb_rows, nb_columns, style=None, fig_output=False):
 
     """
     # Style sous la forme {(0,0): ..., (1,0):..., etc}
-    fig, ax = plt.subplots(nb_rows, nb_columns, tight_layout=True)
+    fig, ax = plt.subplots(nb_rows, nb_columns, tight_layout=True, *args, **kwargs)
     if style is not None:
         for k in style.keys():
             if k is not None:
