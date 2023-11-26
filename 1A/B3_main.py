@@ -10,10 +10,9 @@ Created on Tue Nov 14 2023
 """
 
 # %% Bibliothèques
-import numpy as np
+import matplotlib.pyplot as plt
 import pandas as pd
-import signaux as s
-from B3_processing import *
+from B3_processing import demodulatation_AM_sinusoidal
 
 
 # %% Fichier 1 - Oscillo CSV

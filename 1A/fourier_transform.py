@@ -8,24 +8,48 @@ Created on Tue Nov 14 2023
 
 @author: Dorian Mendes
 """
+
+# %% Bibliothèques
 import matplotlib.pyplot as plt
 import scipy.fft as sp
 import numpy as np
 import signaux as s
 import graphe as g
 
+# %% Constantes
 COLOR = 'red'
+
+# %% Functions
 
 
 def fft(signal, Te):
+    """
+    Compute the FFT of the signal.
+
+    Parameters
+    ----------
+    signal : ndarray
+        Signal we want the FFT.
+    Te : float
+        Samphing time.
+
+    Returns
+    -------
+    complex_fft : ndarray
+        FFT of the signal.
+    frequencies : TYPE
+        Frequencies corresponding.
+
+    """
     N = len(signal)
-    out = sp.fftshift(sp.fft(signal, N))/N
+    complex_fft = sp.fftshift(sp.fft(signal, N))/N
     frequencies = sp.fftshift(sp.fftfreq(N, Te))
-    return out, frequencies
+    return complex_fft, frequencies
 
 
 ifft = sp.ifft
 
+# %% ~~ MAIN ~~~
 if __name__ == '__main__':
     # Fonction sinusoïdale
     f = 100  # Hz

@@ -8,16 +8,29 @@ Created on Tue Nov 24 2023
 
 @author: Dorian Mendes
 """
+
 # %% Bibliothèques
 import signaux as s
 import numpy as np
 from numpy.random import rand, randint
-from B3_processing import *
-import pandas as pd
+from B3_processing import demodulatation_AM_sinusoidal
 
 
 # %% Tests - Demodulation signal purement sinusoïdal
 def demodulation_AM_sinusoidal_test(N):
+    """
+    Generate N random modulated signals and execute the demodulation function.
+
+    Parameters
+    ----------
+    N : int
+        The number of signals.
+
+    Returns
+    -------
+    None.
+
+    """
     for _ in range(N):
         f_m = randint(300, 700)
         f_p = randint(5000, 8000)
@@ -38,5 +51,6 @@ def demodulation_AM_sinusoidal_test(N):
         axs[(0, 0)].plot(time[:250], signal_a_module[:250], 'k')
 
 
+# %% ~~ MAIN ~~~
 if __name__ == '__main__':
     demodulation_AM_sinusoidal_test(10)
