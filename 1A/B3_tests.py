@@ -4,7 +4,7 @@
 Outils Numériques pour l'Ingénieur.e en Physique
 Bloc 3 - Tests
 
-Created on Tue Nov 24 2023
+Created on Fri Nov 24 2023
 
 @author: Dorian Mendes
 """

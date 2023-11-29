@@ -4,7 +4,7 @@
 Outils Numériques pour l'Ingénieur.e en Physique
 Bloc 3 - Processing
 
-Created on Tue Nov 24 2023
+Created on Fri Nov 24 2023
 
 @author: Dorian Mendes
 """
@@ -13,7 +13,8 @@ Created on Tue Nov 24 2023
 import numpy as np
 import graphe as g
 import signaux as s
-from fourier_transform import fft, ifft
+import matplotlib.pyplot as plt
+from fourier_transform import fft, ifft, irfft
 
 # %% Constantes
 COLOR1 = 'red'
@@ -80,9 +81,9 @@ def demodulatation_AM_sinusoidal(time, data, name, slice=150):
     axs[(1, 1)].plot(freq_new_fft, mask*np.max(ampl_new_fft), 'k:')
 
     #  Démodulation - Obtention du message
-    complex_signal_demodule = ifft(mask*complex_new_fft)
-    k = np.max(data)/np.max(np.abs(complex_signal_demodule))
-    signal_demodule = k*np.abs(complex_signal_demodule)
+    signal_demodule = ifft(mask*complex_new_fft)
+    k = np.max(data)/np.max(signal_demodule)
+    signal_demodule = np.real(k*signal_demodule)
 
     #  Affichage du résultat
     axs[(0, 0)].plot(time[:slice], signal_demodule[:slice], color=COLOR2)
@@ -90,3 +91,46 @@ def demodulatation_AM_sinusoidal(time, data, name, slice=150):
     #  Sauvegarde dans un fichier
     np.savetxt('bloc_3_export/'+name+'.csv', np.stack([time, signal_demodule], axis=1), header="Time (s),Voltage (V)", delimiter=',', comments='')
     return axs
+
+
+def demodulatation_AM_son(time, data, name, slice=150):
+
+    #  Affichage des données
+    ax = g.lin_XY(g.new_plot(), title=f'Signal modulé', x_label=r'Temps $t$', x_unit='s', y_label=r'Tension $V$', y_unit='V')
+    ax.plot(time[:slice], data[:slice], color=COLOR1)
+    plt.show()
+
+    #  Calcul de la fft
+    Te = time[1] - time[0]
+    complex_fft, freq_fft = fft(data, Te)
+    ampl_fft = np.abs(complex_fft)
+    ax = g.lin_XY(g.new_plot(), title="FFT du signal d'entrée", x_label=r'$f$', x_unit='Hz', y_label=r"$\left| \tilde{s}(f) \right|$", y_unit=r"")
+    ax.plot(freq_fft, np.abs(complex_fft), color=COLOR1)
+    plt.show()
+
+    #  Fréquence de la porteuse
+    f_porteuse = float(input("Fréquence de la porteuse (Hz): "))
+
+    #  Démodulation - Multiplication par une sinusoïde à la fréquence de la porteuse
+    new_data = data*s.GenerateSinus(1, f_porteuse)(time)
+
+    #  Démodulation - Calcul de la fft du signal obtenu
+    complex_new_fft, freq_new_fft = fft(new_data, Te)
+    ampl_new_fft = np.abs(complex_new_fft)
+
+    #  Démodulation - Filtrage passe-bas
+    mask = (-f_porteuse/2 <= freq_new_fft) & (freq_new_fft <= f_porteuse/2)
+
+    #  Démodulation - Obtention du message
+    signal_demodule = ifft(mask*complex_new_fft)
+    k = np.max(data)/np.max(signal_demodule)
+    signal_demodule = np.real(k*signal_demodule)
+
+    #  Affichage du résultat
+    ax = g.lin_XY(g.new_plot(), title=f'Signal démodulé', x_label=r'Temps $t$', x_unit='s', y_label=r'Tension $V$', y_unit='V')
+    ax.plot(time[:slice], signal_demodule[:slice], color=COLOR2)
+    plt.show()
+
+    #  Sauvegarde dans un fichier
+    np.savetxt('bloc_3_export/'+name+'.csv', np.stack([time, signal_demodule], axis=1), header="Time (s),Voltage (V)", delimiter=',', comments='')
+    return signal_demodule
