@@ -42,17 +42,20 @@ def fft(signal, Te):
 
     """
     N = len(signal)
-    complex_fft = sp.fftshift(sp.fft(signal, N))/N
+    complex_fft = sp.fftshift(sp.fft(signal, N))
     frequencies = sp.fftshift(sp.fftfreq(N, Te))
     return complex_fft, frequencies
 
 
 def ifft(a, *args, **kwargs):
     N = len(a)
-    return sp.ifft(sp.fftshift(N*a, *args, **kwargs))
+    return sp.ifft(sp.fftshift(a, *args, **kwargs))
 
 
-irfft = sp.irfft
+def irfft(a, *args, **kwargs):
+    N = len(a)
+    return sp.irfft(sp.fftshift(a, *args, **kwargs))
+
 
 # %% ~~ MAIN ~~~
 if __name__ == '__main__':
