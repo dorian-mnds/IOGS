@@ -22,6 +22,7 @@ import signaux as s
 import pandas as pd
 import base64
 from scipy.io import wavfile
+import sounddevice as sd
 
 # %% Constantes
 COLOR1 = '#4472c4'
@@ -164,6 +165,8 @@ class MainWindow(QMainWindow):
         # -- Validation et enregistrement --
         self.layout_save = QHBoxLayout()
         self.save_widget = QWidget()
+        self.play = QPushButton("Play")
+        self.play.clicked.connect(self.play_song)
         self.save_button = QPushButton("Save")
         self.save_button.clicked.connect(self.save_data)
 
@@ -174,6 +177,7 @@ class MainWindow(QMainWindow):
         self.filepath_export_label = QLabel("Nom du fichier d'exportation:")
         self.export_file_path = QLineEdit()
 
+        self.layout_export.addWidget(self.play)
         self.layout_export.addWidget(self.filepath_export_label)
         self.layout_export.addWidget(self.export_file_path)
         self.layout_export.addWidget(self.save_button)
@@ -218,6 +222,7 @@ class MainWindow(QMainWindow):
             self.time_in = df['Time(s)'].to_numpy()
             self.Te = self.time_in[1]-self.time_in[0]
             self.signal_in = df['Volt(V)'].to_numpy()
+            self.fe = 1/self.Te
 
         self.N = len(self.time_in)
 
@@ -279,6 +284,11 @@ class MainWindow(QMainWindow):
         else:
             np.savetxt('bloc_3_export/'+name+'.txt', np.stack([self.time_in, self.signal_out], axis=1), header="Time (s),Voltage (V)", delimiter=',', comments='')
         print("saved")
+
+    def play_song(self):
+        sd.play(self.signal_out/np.max(self.signal_out)*.5, self.fe)
+        sd.wait()
+        sd.stop()
 
 
 # %% Éxécution
