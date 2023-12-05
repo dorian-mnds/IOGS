@@ -34,7 +34,17 @@ PI = np.pi
 
 
 class MainWindow(QMainWindow):
+    """ Creation of the window. """
+
     def __init__(self):
+        """
+        Initialisation of the window.
+
+        Returns
+        -------
+        None.
+
+        """
         super().__init__()
 
         self.setStyleSheet("background: #f2f2f2;")
@@ -42,18 +52,14 @@ class MainWindow(QMainWindow):
 
         # Define Window title
         self.setWindowTitle("AM Demodulation")
+
         # self.setWindowIcon(QIcon('_inc/IOGS-LEnsE-logo.jpg'))
         self.setGeometry(50, 50, 1000, 700)
 
         # Main Layout
         self.main_widget = QWidget()
         self.grid = QGridLayout()
-        # self.main_layout.setColumnStretch(0, 1)
-        # self.main_layout.setColumnStretch(1, 4)
         self.main_widget.setLayout(self.grid)
-
-        # Sélection du fichier à démoduler
-        ...
 
         # Signal d'entrée
         self.win_graph_in = pg.GraphicsLayoutWidget()
@@ -120,11 +126,29 @@ class MainWindow(QMainWindow):
         self.button_freq = QPushButton('OK')
         self.button_freq.clicked.connect(self.freq_porteuse_changed)
 
+        # Sélection fréquence du filtre
+        self.select_filtre_freq_default = QCheckBox("=f_porteuse?")
+        self.select_filtre_freq_default.clicked.connect(self.freq_filtre_changed)
+        self.filtre_freq_label = QLabel("Largeur de la porte:")
+        self.filtre_freq_input = QLineEdit()
+        self.filtre_freq_input.textChanged.connect(self.freq_filtre_changed)
+        self.filtre_freq_input.setText(str(0))
+        self.filtre_freq_unit = QLabel('Hz')
+        self.layout_filtre_freq = QHBoxLayout()
+        self.select_freq_filtre = QWidget()
+
+        self.layout_filtre_freq.addWidget(self.select_filtre_freq_default)
+        self.layout_filtre_freq.addWidget(self.filtre_freq_label)
+        self.layout_filtre_freq.addWidget(self.filtre_freq_input)
+        self.layout_filtre_freq.addWidget(self.filtre_freq_unit)
+        self.select_freq_filtre.setLayout(self.layout_filtre_freq)
+
         self.layout_curseur.addWidget(self.curseur_porteuse)
         self.layout_curseur.addWidget(self.button_freq)
         self.curseur_main_widget.setLayout(self.layout_curseur)
         self.layout_curseur_porteuse.addWidget(self.text_curseur_main_widget)
         self.layout_curseur_porteuse.addWidget(self.curseur_main_widget)
+        self.layout_curseur_porteuse.addWidget(self.select_freq_filtre)
         self.curseur_porteuse_main_widget.setLayout(self.layout_curseur_porteuse)
         self.layout_curseur_porteuse.setAlignment(Qt.AlignTop)
 
@@ -194,9 +218,15 @@ class MainWindow(QMainWindow):
         self.grid.addWidget(self.selection_widget, 1, 1)
         self.selection_widget.setStyleSheet("background-color: #c55a11;")
 
-        # Data test
-        # self.data_test()
     def select_file(self):
+        """
+        Selection of the file corresponding of the signal to demodulate.
+
+        Returns
+        -------
+        None.
+
+        """
         path, _ = QFileDialog.getOpenFileName(None, "Select File", "")
         if path:
             self.path = path
@@ -205,6 +235,14 @@ class MainWindow(QMainWindow):
             print("No file selected.")
 
     def get_data(self):
+        """
+        Extract the data from the file and compute the fft of the inputing signal.
+
+        Returns
+        -------
+        None.
+
+        """
         if self.base_64_box.isChecked():
             chemin_fichier_base64 = self.path
             with open(chemin_fichier_base64, "rb") as fichier_enc:
@@ -233,11 +271,22 @@ class MainWindow(QMainWindow):
         self.curve_fft_in.setData(self.freq_in[self.N//2:], self.ampl_fft_in[self.N//2:])
 
         self.curseur_porteuse.setMaximum(int(np.max(self.freq_in)))
-        self.curseur_porteuse.setValue(int(np.max(self.freq_in)/2))
+        self.freq_porteuse = int(np.max(self.freq_in)/2)
+        self.value_freq_filtre = self.freq_porteuse
+        self.curseur_porteuse.setValue(self.freq_porteuse)
         self.input_curseur_porteuse.setText(str(int(np.max(self.freq_in)/4)))
         self.curseur_porteuse.setTickInterval(len(self.freq_in)//20)
+        self.filtre_freq_input.setText(str(self.freq_porteuse))
 
     def input_curseur_porteuse_change(self):
+        """
+        Evolution of the input line of f_porteuse.
+
+        Returns
+        -------
+        None.
+
+        """
         txt = self.input_curseur_porteuse.text()
         if txt != '':
             self.freq_porteuse = int(txt)
@@ -246,12 +295,30 @@ class MainWindow(QMainWindow):
         self.curseur_porteuse.setValue(self.freq_porteuse)
 
     def curseur_porteuse_valuechange(self):
+        """
+        Evolution of the cursor of f_porteuse.
+
+        Returns
+        -------
+        None.
+
+        """
         # Update de la valeur de la porteuse
         self.freq_porteuse = self.curseur_porteuse.value()
         self.input_curseur_porteuse.setText(str(self.freq_porteuse))
         self.plot_freq_porteuse.setData([self.freq_porteuse]*2, [0, 1.05*np.max(self.ampl_fft_in)])
+        self.freq_filtre_changed()
 
     def freq_porteuse_changed(self):
+        """
+        Compute the FFT and the outputing signal.
+
+        Returns
+        -------
+        None.
+
+        """
+        self.freq_filtre_changed()
         # Calcul du spectre après multiplication par un sinus à f_porteuse
         self.compute_fft_out, self.freq_after_multiplication = fft(self.signal_in*s.GenerateSinus(1, self.freq_porteuse)(self.time_in), self.Te)
         self.ampl_fft_after_multiplication = np.abs(self.compute_fft_out)
@@ -259,17 +326,31 @@ class MainWindow(QMainWindow):
 
         # Affichage du filtre passe-bas
         self.plot_filtre.setData(
-            [0, self.freq_porteuse/2, self.freq_porteuse/2],
+            [0, self.value_freq_filtre/2, self.value_freq_filtre/2],
             [np.max(self.ampl_fft_after_multiplication), np.max(self.ampl_fft_after_multiplication), 0]
         )
 
         # Calcul du signal de sortie
-        mask = (-self.freq_porteuse/2 <= self.freq_after_multiplication) & (self.freq_after_multiplication <= self.freq_porteuse/2)
+        mask = (-self.value_freq_filtre/2 <= self.freq_after_multiplication) & (self.freq_after_multiplication <= self.value_freq_filtre/2)
         if self.base_64_box.isChecked():
             self.signal_out = np.real(ifft(mask*self.compute_fft_out)).astype(np.int16)
         else:
             self.signal_out = np.real(ifft(mask*self.compute_fft_out))
         self.curve_graph_out.setData(self.time_in, self.signal_out)
+
+    def freq_filtre_changed(self):
+        """
+        Evolution of the input line of f_filtre
+
+        Returns
+        -------
+        None.
+
+        """
+        if self.select_filtre_freq_default.isChecked():
+            self.filtre_freq_input.setText(str(self.freq_porteuse))
+        else:
+            self.value_freq_filtre = int(self.filtre_freq_input.text())
 
     # def update_graphs(self):
     #     self.curve_graph_in.setData(self.time_in, self.signal_in)
@@ -278,6 +359,14 @@ class MainWindow(QMainWindow):
     #     self.curve_fft_out.setData(self.freq_after_multiplication[self.N//2:], self.ampl_fft_after_multiplication[self.N//2:])
 
     def save_data(self):
+        """
+        Save the outputing signal.
+
+        Returns
+        -------
+        None.
+
+        """
         name = self.export_file_path.text()
         if self.base_64_box.isChecked():
             wavfile.write("bloc_3_export/"+name+'.wav', self.fe, np.real(self.signal_out))
@@ -286,6 +375,14 @@ class MainWindow(QMainWindow):
         print("saved")
 
     def play_song(self):
+        """
+        Play the data.
+
+        Returns
+        -------
+        None.
+
+        """
         sd.play(self.signal_out/np.max(self.signal_out)*.5, self.fe)
         sd.wait()
         sd.stop()
