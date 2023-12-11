@@ -24,6 +24,7 @@ class SelectionWidget(QWidget):
         super().__init__()
         self.super_layout = QVBoxLayout()
         self.main_widget = QWidget()
+        self.main_widget.setObjectName("main")
         self.main_layout = QVBoxLayout()
 
         # First line
@@ -72,7 +73,17 @@ class SelectionWidget(QWidget):
         self.main_widget.setLayout(self.main_layout)
         self.super_layout.addWidget(self.main_widget)
         self.setLayout(self.super_layout)
-        self.setStyleSheet("background-color: #c55a11;")
+        style = """
+            * {
+                background-color: #c55a11;
+            }
+            #main {
+                background-color: #c55a11;
+                border: 2px solid black;
+                border-radius:10px;
+            }
+            """
+        self.setStyleSheet(style)
 
 # %% Launching as main for tests
 
