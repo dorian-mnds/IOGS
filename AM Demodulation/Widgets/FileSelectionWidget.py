@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 """
 Outils Numériques pour l'Ingénieur.e en Physique
-Bloc 3 - Qt App - Selection widget
+Bloc 3 - Qt App - File Selection widget
 
 Created on Mon Dec 11 2023
 
@@ -19,7 +19,7 @@ from PyQt5.QtCore import Qt
 
 
 # %% Widget
-class SelectionWidget(QWidget):
+class FileSelectionWidget(QWidget):
     def __init__(self):
         super().__init__()
         self.super_layout = QVBoxLayout()
@@ -85,13 +85,12 @@ class SelectionWidget(QWidget):
             """
         self.setStyleSheet(style)
 
+
 # %% Launching as main for tests
-
-
 class MainWindow(QMainWindow):
     def __init__(self):
         super().__init__()
-        self.selection = SelectionWidget()
+        self.selection = FileSelectionWidget()
 
         self.widget = QWidget()
         self.layout = QVBoxLayout()

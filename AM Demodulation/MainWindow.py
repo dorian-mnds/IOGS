@@ -16,7 +16,7 @@ from PyQt5.QtWidgets import QApplication, QMainWindow, QWidget
 from PyQt5.QtWidgets import QGridLayout, QHBoxLayout, QVBoxLayout
 from PyQt5.QtWidgets import QLabel, QSlider, QLineEdit, QCheckBox, QPushButton, QFileDialog
 from Widgets.TimeFrequencyGraph import TimeFrequencyGraph
-from Widgets.SelectionWidget import SelectionWidget
+from Widgets.FileSelectionWidget import FileSelectionWidget
 
 from PyQt5.QtGui import QIcon
 from PyQt5.QtCore import Qt
@@ -75,7 +75,7 @@ class MainWindow(QMainWindow):
         self.grid.addWidget(self.out_graph, 0, 1)
 
         # Selection
-        self.select = SelectionWidget()
+        self.select = FileSelectionWidget()
         self.grid.addWidget(self.select, 1, 1)
 
         # Set the main widget
