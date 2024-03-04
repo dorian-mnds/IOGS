@@ -17,6 +17,7 @@ from PyQt5.QtWidgets import QGridLayout, QHBoxLayout, QVBoxLayout
 from PyQt5.QtWidgets import QLabel, QSlider, QLineEdit, QCheckBox, QPushButton, QFileDialog
 from Widgets.TimeFrequencyGraph import TimeFrequencyGraph
 from Widgets.FileSelectionWidget import FileSelectionWidget
+from Widgets.FrequencySelectionWidget import FrequencySelectionWidget
 
 from PyQt5.QtGui import QIcon
 from PyQt5.QtCore import Qt
@@ -30,20 +31,24 @@ import base64
 from scipy.io import wavfile
 import sounddevice as sd
 
+
 # %% Constants
 COLOR1 = '#4472c4'
 COLOR2 = '#c55a11'
 PI = np.pi
 
+
 # %% Application
-
-
 class MainWindow(QMainWindow):
-    """ Creation of the window. """
+    """
+    Creation of the window.
+
+    >>> AM Demodulation
+    """
 
     def __init__(self):
         """
-        Initialisation of the window.
+        Initialize the window.
 
         Returns
         -------
@@ -74,7 +79,11 @@ class MainWindow(QMainWindow):
         self.out_graph = TimeFrequencyGraph('TIME OUT', 'FREQ OUT', COLOR1, COLOR2)
         self.grid.addWidget(self.out_graph, 0, 1)
 
-        # Selection
+        # Frequency Selection
+        self.select = FrequencySelectionWidget()
+        self.grid.addWidget(self.select, 1, 0)
+
+        # File Selection
         self.select = FileSelectionWidget()
         self.grid.addWidget(self.select, 1, 1)
 

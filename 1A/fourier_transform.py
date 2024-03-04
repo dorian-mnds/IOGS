@@ -93,6 +93,20 @@ if __name__ == '__main__':
     ax[1].axvline(-f3, ls=':', color='k')
     plt.show()
 
+    # Somme de fonctions sinusoïdales
+    f1 = 30  # Hz
+    f2 = 250  # Hz
+    time = np.linspace(0, 1000/f2, 40000)
+    data = s.GenerateSinus(4, f1)(time)*s.GenerateSinus(6, f2)(time)
+    out, freq = fft(data, time[1]-time[0])
+
+    ax = g.new_mosaique(2, 1, style={
+        0: lambda ax: g.lin_XY(ax, title=r"Signal", x_label=r"$t$", x_unit='s', y_label=r"$s(t)$"),
+        1: lambda ax: g.lin_XY(ax, title=r"FFT", x_label=r"$f$", x_unit='Hz', y_label=r"$\tilde s(f)$")})
+    ax[0].plot(time[:1000], data[:1000], color=COLOR)
+    ax[1].plot(freq[len(freq)//2-1500:len(freq)//2+1500], np.abs(out)[len(freq)//2-1500:len(freq)//2+1500], color=COLOR)
+    plt.show()
+
     # Fonction rectangle
     f = 100  # Hz
     time = np.linspace(0, 10/f, 4000)
